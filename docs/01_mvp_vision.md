@@ -20,3 +20,28 @@
 ### 4. 後台維運助理 (Admin Coworker)
 **傳統 CookSmart**：維運人員需要登入 C# Admin 系統點擊 UI 修改 Feature Flag 或封鎖帳號。
 **Always-On Agent**：身兼管理員身分，開發者可以直接對 Agent 下達指令（如：「把推薦食譜的數量改為 5 個」），Agent 便會透過 MCP 去呼叫 Admin Backend API 完成設定。
+
+---
+
+# (English Version) CookSmart Always-On Agent: Your Super Smart Kitchen Helper! 🍳🤖
+
+**What are we doing?**
+We are making our app, CookSmart, much smarter! Instead of typing on your phone, you can just talk to it. It will remember things about you and even do chores for you automatically. 
+
+Here are the 4 cool new things we are adding:
+
+### 1. A Helper You Can Talk To 🗣️
+**Old way:** You have to type what food is in your fridge on your phone.
+**New way:** You just talk to it! You can say, *"Hi CookSmart! I have eggs and tomatoes. What can I cook?"* and it will talk back to you with a yummy idea. You don't even need to use your hands while cooking!
+
+### 2. A Super Memory 🧠
+**Old way:** The app forgets everything after you use it. Every day is a new day.
+**New way:** It remembers you! It remembers that you are allergic to peanuts, and that you want to eat healthy food. You don't have to tell it the same things every single time.
+
+### 3. It Does Chores For You 🛒
+**Old way:** It just gives you a recipe to read. You have to write down what you need to buy yourself.
+**New way:** If you want to cook a meal but you are missing some onions, the helper will automatically put onions on your shopping list for you! 
+
+### 4. A Helper for the Boss 🧑‍💻
+**Old way:** The boss of the app has to click many buttons to change rules or fix things.
+**New way:** The boss can just tell the helper, *"Please turn off the recipe maker today,"* and the helper will do it right away! 
