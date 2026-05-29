@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Caveat:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'PingFang SC', 'Microsoft JhengHei', "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", sans-serif;
+  --font-handwriting: "Caveat", cursive;
+
+  --color-primary: #1A1C1E;
+  --color-primary-container: #4caf50;
+  --color-on-primary: #ffffff;
+  --color-secondary-container: #E2E8F0;
+  --color-on-secondary-container: #1A1C1E;
+  --color-background: #F0F2F5;
+  --color-surface: #F0F2F5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f4f5;
+  --color-surface-container: #edeeef;
+  --color-surface-container-high: #e7e8e9;
+  --color-surface-container-highest: #e1e3e4;
+  --color-on-surface: #1A1C1E;
+  --color-on-surface-variant: rgba(26, 28, 30, 0.6);
+  --color-outline: #6f7a6b;
+  --color-outline-variant: rgba(0, 0, 0, 0.04);
+  --color-error: #ba1a1a;
+  --color-cta: #1A1C1E;
+  --color-cta-hover: #000000;
+
+  --radius-lg: 28px;
+  --radius-xl: 32px;
+
+  @keyframes bounce-subtle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  --animate-bounce-subtle: bounce-subtle 2s ease-in-out infinite;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-on-surface font-sans antialiased;
+  }
+}
+
+.bento-card {
+  @apply bg-surface-container-lowest rounded-[28px] p-6 border border-outline-variant shadow-[0_10px_25px_-5px_rgba(0,0,0,0.03)] transition-all duration-300;
+}
+
+.ambient-shadow {
+  @apply shadow-[0_10px_25px_-5px_rgba(0,0,0,0.03)];
+}
+
+.ambient-shadow-lg {
+  @apply shadow-[0_20px_40px_-10px_rgba(0,0,0,0.08)];
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.post-it-shadow {
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
