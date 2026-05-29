@@ -112,6 +112,11 @@ run-mcp: ## Tab 0: MCP tool server (Level 2)
 	@echo "$(BLUE)MCP tool server on :8000...$(RESET)"
 	$(PYTHON) agentic/servers/cooksmart_mcp_server/server.py
 
+.PHONY: run-voice-server
+run-voice-server: ## Tab 4: Web Voice server (Level 2)
+	@echo "$(BLUE)Voice tool server on :8001...$(RESET)"
+	PYTHONPATH=. $(PYTHON) agentic/servers/voice_server.py
+
 # ==============================================================================
 .PHONY: demo
 demo: ## Tab 3: full voice loop (run `make generate-audio` first)
