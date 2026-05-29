@@ -52,7 +52,7 @@ nlg:
 # MCP tool servers. Only the optional `agentic/` level uses this; harmless otherwise.
 mcp_servers:
   - name: cooksmart_tools
-    url: http://localhost:4000/mcp
+    url: http://localhost:8000/mcp
     type: http
 
 # Voice channels: this starter drives voice from a small Python client that calls

@@ -110,7 +110,7 @@ run-rasa-agentic: ## Tab 2: Rasa server with the sub-agent loaded (Level 2)
 .PHONY: run-mcp
 run-mcp: ## Tab 0: MCP tool server (Level 2)
 	@echo "$(BLUE)MCP tool server on :8000...$(RESET)"
-	$(PYTHON) agentic/servers/ops_mcp_server/server.py
+	$(PYTHON) agentic/servers/cooksmart_mcp_server/server.py
 
 # ==============================================================================
 .PHONY: demo

@@ -1,0 +1,9 @@
+flows:
+  meal_decision_help:
+    description: >
+      Help the user decide what to cook, recommend recipes, manage their grocery
+      shopping list, or talk about food and dietary preferences. Triggers when the
+      user says they are hungry, want to cook something, don't know what to eat,
+      or ask for recipe suggestions.
+    steps:
+      - call: meal_assistant
