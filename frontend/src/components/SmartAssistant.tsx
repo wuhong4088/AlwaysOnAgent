@@ -1,21 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, BrainCircuit, X, RefreshCw, Sparkles } from 'lucide-react';
-import { generateRecipe } from '../services/geminiService';
-import { Recipe } from '../types';
-import { RECIPES } from '../data';
+import { ShoppingBag, BrainCircuit, X, Sparkles, Send, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
+interface Message {
+  sender: 'user' | 'bot';
+  text: string;
+}
+
 export default function SmartAssistant() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [ingredients, setIngredients] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Recipe | null>(null);
   const [listCount, setListCount] = useState(0);
-  const [showToast, setShowToast] = useState(false);
+
+  // Chat states
+  const [messages, setMessages] = useState<Message[]>([
+    { sender: 'bot', text: 'Hi! I am your CookSmart assistant. Tell me what ingredients you have, or ask me for a recipe recommendation!' }
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const updateCount = () => {
@@ -38,21 +44,59 @@ export default function SmartAssistant() {
     return () => window.removeEventListener('shopping_lists_updated', updateCount);
   }, []);
 
-  const handleGenerate = async () => {
-    if (!ingredients.trim()) return;
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      scrollToBottom();
+    }
+  }, [messages, isOpen]);
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+    
+    const userMsg = input.trim();
+    setMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
+    setInput('');
     setLoading(true);
+
     try {
-      const recipe = await generateRecipe(ingredients, i18n.language);
-      setResult(recipe);
+      // Send to Rasa server
+      const response = await fetch('http://localhost:5005/webhooks/rest/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender: 'web_user', message: userMsg })
+      });
+      
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        data.forEach((botMsg: any) => {
+          if (botMsg.text) {
+            setMessages(prev => [...prev, { sender: 'bot', text: botMsg.text }]);
+          }
+        });
+      } else {
+        setMessages(prev => [...prev, { sender: 'bot', text: 'Sorry, I did not understand that.' }]);
+      }
     } catch (error) {
-      alert(t('assistant.error'));
+      console.error('Error communicating with Rasa agent:', error);
+      setMessages(prev => [...prev, { sender: 'bot', text: 'Oops! I am having trouble connecting to my brain. Is the Rasa server running on port 5005?' }]);
     } finally {
       setLoading(false);
     }
   };
 
-  const location = useLocation();
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
+  const location = useLocation();
   if (location.pathname.startsWith('/shopping-list')) {
     return null;
   }
@@ -97,146 +141,69 @@ export default function SmartAssistant() {
               initial={{ y: 50, scale: 0.9 }}
               animate={{ y: 0, scale: 1 }}
               exit={{ y: 50, scale: 0.9 }}
-              className="bg-surface w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] border border-outline-variant"
+              className="bg-surface w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[600px] max-h-[85vh] border border-outline-variant"
             >
-              <div className="bg-primary p-6 flex justify-between items-center text-white">
+              {/* Header */}
+              <div className="bg-primary p-4 flex justify-between items-center text-white shrink-0">
                 <div className="flex items-center gap-2">
-                  <BrainCircuit className="w-6 h-6" />
-                  <h3 className="font-bold text-lg">{t('assistant.title')}</h3>
+                  <Sparkles className="w-5 h-5" />
+                  <h3 className="font-bold text-lg">CookSmart AI</h3>
                 </div>
                 <button onClick={() => setIsOpen(false)} className="hover:bg-white/20 p-2 rounded-full transition-colors">
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
-              <div className="p-6 overflow-y-auto flex flex-col gap-6">
-                {!result ? (
-                  <>
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-bold text-on-surface-variant">{t('assistant.askIngredients')}</label>
-                      <textarea 
-                        value={ingredients}
-                        onChange={(e) => setIngredients(e.target.value)}
-                        placeholder={t('assistant.placeholder')}
-                        className="w-full h-32 p-4 bg-surface-container-low border-transparent rounded-2xl font-medium text-on-surface focus:ring-2 focus:ring-primary transition-all outline-none resize-none"
-                      />
-                    </div>
-                    <button 
-                      onClick={handleGenerate}
-                      disabled={loading || !ingredients.trim()}
-                      className="w-full bg-cta text-white font-bold py-4 rounded-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              {/* Chat History */}
+              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-surface-container-lowest">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div 
+                      className={`max-w-[80%] p-3 rounded-2xl text-sm ${
+                        msg.sender === 'user' 
+                          ? 'bg-primary text-white rounded-tr-sm' 
+                          : 'bg-surface-container-high text-on-surface rounded-tl-sm shadow-sm'
+                      }`}
+                      style={{ whiteSpace: 'pre-wrap' }}
                     >
-                      {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                      {loading ? t('assistant.generating') : t('assistant.generateBtn')}
-                    </button>
-                  </>
-                ) : (
-                  <div className="flex flex-col gap-4">
-                    {result.image && (
-                      <div className="w-full h-40 rounded-2xl overflow-hidden shadow-md shrink-0">
-                        <img src={result.image} alt={result.title} className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                    <div className="bg-green-50 p-4 rounded-2xl border border-green-200">
-                      <h4 className="font-bold text-primary text-xl mb-1">{result.title}</h4>
-                      <p className="text-sm text-green-800">{result.description}</p>
+                      {msg.text}
                     </div>
-                    
-                    <div className="flex gap-4">
-                      <div className="flex-1 bg-surface-container p-3 rounded-xl text-center">
-                        <span className="text-[10px] uppercase font-bold text-on-surface-variant block">{t('assistant.time')}</span>
-                        <span className="text-sm font-bold text-primary">{result.time}</span>
-                      </div>
-                      <div className="flex-1 bg-surface-container p-3 rounded-xl text-center">
-                        <span className="text-[10px] uppercase font-bold text-on-surface-variant block">{t('assistant.difficulty')}</span>
-                        <span className="text-sm font-bold text-primary">{t('assistant.easy')}</span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h5 className="font-bold text-sm mb-2">{t('assistant.ingredients')}</h5>
-                      <ul className="grid grid-cols-2 gap-2">
-                        {result.ingredients.map((ing, i) => (
-                          <li key={i} className="text-xs bg-surface-container-high px-3 py-2 rounded-lg flex justify-between">
-                            <span>{ing.name}</span>
-                            <span className="font-bold text-on-surface-variant">{ing.amount}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div>
-                      <h5 className="font-bold text-sm mb-2">{t('assistant.steps')}</h5>
-                      <div className="space-y-4">
-                        {result.steps.map((step, i) => (
-                          <div key={i} className="flex gap-3 bg-surface-container p-3 rounded-xl">
-                            <span className="shrink-0 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold">{i+1}</span>
-                            <div className="flex-1 flex flex-col gap-2">
-                              <p className="text-sm leading-relaxed">{step.text}</p>
-                              {step.image && (
-                                <img src={step.image} alt={`Step ${i+1}`} className="w-full h-24 object-cover rounded-lg" />
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                      <button 
-                        onClick={() => setResult(null)}
-                        className="flex-1 py-3 rounded-full border-2 border-outline-variant font-bold text-sm text-on-surface-variant hover:bg-surface-container transition-colors"
-                      >
-                        {t('assistant.regenerate')}
-                      </button>
-                      <button 
-                        onClick={() => {
-                          if (!result) return;
-                          const saved = localStorage.getItem('saved_recipes');
-                          let lists = [];
-                          if (saved) {
-                            try { lists = JSON.parse(saved); } catch (e) {}
-                          }
-                          
-                          // Avoid duplicates by title (since AI recipes don't have stable IDs)
-                          const exists = lists.find((r: any) => r.title === result.title);
-                          if (!exists) {
-                            const aiRecipeId = 'ai_' + Date.now();
-                            const newListData = {
-                              ...result,
-                              id: aiRecipeId,
-                            };
-                            lists.unshift(newListData);
-                            localStorage.setItem('saved_recipes', JSON.stringify(lists));
-                          }
-                          
-                          // Show toast
-                          setShowToast(true);
-                          setTimeout(() => setShowToast(false), 3000);
-                        }}
-                        className="flex-1 py-3 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary-container transition-colors shadow-md"
-                      >
-                        {t('assistant.save')}
-                      </button>
+                  </div>
+                ))}
+                {loading && (
+                  <div className="flex justify-start">
+                    <div className="bg-surface-container-high p-3 rounded-2xl rounded-tl-sm flex gap-2 items-center text-primary text-sm shadow-sm">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Thinking...</span>
                     </div>
                   </div>
                 )}
+                <div ref={messagesEndRef} />
               </div>
+
+              {/* Input Area */}
+              <div className="p-4 bg-surface border-t border-outline-variant shrink-0">
+                <div className="flex gap-2 items-center bg-surface-container-low rounded-full px-4 py-2 border border-outline-variant focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+                  <input 
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Ask for a recipe or cooking advice..."
+                    className="flex-1 bg-transparent border-none outline-none text-sm py-2 text-on-surface"
+                    disabled={loading}
+                  />
+                  <button 
+                    onClick={handleSend}
+                    disabled={loading || !input.trim()}
+                    className="p-2 text-primary hover:bg-primary/10 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-      {/* Toast Notification */}
-      <AnimatePresence>
-        {showToast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, x: '-50%' }}
-            animate={{ opacity: 1, y: 0, x: '-50%' }}
-            exit={{ opacity: 0, y: 50, x: '-50%' }}
-            className="fixed bottom-24 left-1/2 z-[60] px-6 py-3 bg-inverse-surface text-inverse-on-surface rounded-full shadow-lg whitespace-nowrap text-sm font-medium"
-          >
-            {t('profile.saveSuccessDesc', { defaultValue: 'Recipe saved to your favorites!' })}
           </motion.div>
         )}
       </AnimatePresence>
