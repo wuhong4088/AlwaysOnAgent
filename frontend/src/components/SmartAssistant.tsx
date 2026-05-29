@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, BrainCircuit, X, Sparkles, Send, Loader2, Mic, MicOff } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -51,7 +51,7 @@ export default function SmartAssistant() {
 
   // Chat states
   const [messages, setMessages] = useState<Message[]>([
-    { sender: 'bot', text: 'Hi! I am your CookSmart assistant. You can type or use your microphone to talk to me!' }
+    { sender: 'bot', text: "Hi! I am your Typeless assistant. You can type or use your microphone to talk to me!" }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -130,6 +130,14 @@ export default function SmartAssistant() {
 
   // --- Voice Handlers ---
   
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -281,8 +289,8 @@ export default function SmartAssistant() {
               {/* Header */}
               <div className="bg-primary p-4 flex justify-between items-center text-white shrink-0">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5" />
-                  <h3 className="font-bold text-lg">CookSmart Voice Agent</h3>
+                  <BrainCircuit className="w-5 h-5" />
+                  <h3 className="font-medium">Typeless Voice Agent</h3>
                 </div>
                 <button onClick={() => setIsOpen(false)} className="hover:bg-white/20 p-2 rounded-full transition-colors">
                   <X className="w-6 h-6" />
@@ -317,7 +325,7 @@ export default function SmartAssistant() {
                   <div className="flex justify-end">
                     <div className="bg-error text-white p-3 rounded-2xl rounded-tr-sm flex gap-2 items-center text-sm shadow-sm animate-pulse">
                       <Mic className="w-4 h-4" />
-                      <span>Listening...</span>
+                      <span>正在聆聽... 點擊結束</span>
                     </div>
                   </div>
                 )}
@@ -328,10 +336,7 @@ export default function SmartAssistant() {
               <div className="p-4 bg-surface border-t border-outline-variant shrink-0">
                 <div className="flex gap-2 items-center">
                   <button
-                    onMouseDown={startRecording}
-                    onMouseUp={stopRecording}
-                    onTouchStart={startRecording}
-                    onTouchEnd={stopRecording}
+                    onClick={toggleRecording}
                     className={`p-3 rounded-full text-white transition-all shadow-md ${isRecording ? 'bg-error scale-110' : 'bg-primary hover:bg-primary-hover'}`}
                   >
                     {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
@@ -342,7 +347,7 @@ export default function SmartAssistant() {
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Hold mic to speak or type..."
+                      placeholder="Click mic to speak or type..."
                       className="flex-1 bg-transparent border-none outline-none text-sm py-2 text-on-surface"
                       disabled={loading || isRecording}
                     />
@@ -356,7 +361,7 @@ export default function SmartAssistant() {
                   </div>
                 </div>
                 <div className="text-center mt-2">
-                  <span className="text-[10px] text-on-surface-variant font-medium">Hold the microphone icon to speak</span>
+                  <span className="text-[10px] text-on-surface-variant font-medium">Click the microphone icon to speak</span>
                 </div>
               </div>
 

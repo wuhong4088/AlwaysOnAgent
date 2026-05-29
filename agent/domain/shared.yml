@@ -7,6 +7,10 @@ slots:
       - type: controlled
 
 responses:
+  utter_cannot_handle:
+    - text: "抱歉，我目前主要專注於料理與食譜！你可以告訴我你有哪些食材，或是你想做什麼菜，我會一步一步引導你完成喔！"
+  utter_internal_error:
+    - text: "哎呀，我的大腦剛剛好像稍微打結了（系統錯誤）。沒關係，你可以告訴我你今天想吃什麼，我們再試一次好嗎？"
   utter_can_do_something_else:
     - text: "Anything else I can help you with?"
   utter_goodbye:
